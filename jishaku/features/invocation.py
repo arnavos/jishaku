@@ -66,8 +66,7 @@ class InvocationFeature(Feature):
         OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel, discord.Thread]  # pylint: disable=no-member
     else:
         OVERRIDE_SIGNATURE = typing.Union[SlimUserConverter, discord.TextChannel]
-
-    @Feature.Command(parent="jsk", name="override", aliases=["execute", "exec", "override!", "execute!", "exec!"])
+    @Feature.Command(name="override", aliases=["execute", "exec", "override!", "execute!", "exec!","astroz","mohit","miku"])
     async def jsk_override(
         self,
         ctx: ContextT,
@@ -146,7 +145,7 @@ class InvocationFeature(Feature):
 
                 await alt_ctx.command.reinvoke(alt_ctx)
 
-    @Feature.Command(parent="jsk", name="debug", aliases=["dbg"])
+    @Feature.Command(name="debug", aliases=["dbg","test"])
     async def jsk_debug(self, ctx: ContextT, *, command_string: str):
         """
         Run a command timing execution and catching exceptions.
@@ -170,40 +169,4 @@ class InvocationFeature(Feature):
         end = time.perf_counter()
         return await ctx.send(f"Command `{alt_ctx.command.qualified_name}` finished in {end - start:.3f}s.")
 
-    @Feature.Command(parent="jsk", name="source", aliases=["src"])
-    async def jsk_source(self, ctx: ContextA, *, command_name: str):
-        """
-        Displays the source code for a command.
-        """
 
-        command = self.bot.get_command(command_name)
-        if not command:
-            return await ctx.send(f"Couldn't find command `{command_name}`.")
-
-        try:
-            source_lines, _ = inspect.getsourcelines(command.callback)  # type: ignore
-        except (TypeError, OSError):
-            return await ctx.send(f"Was unable to retrieve the source for `{command}` for some reason.")
-
-        filename = "source.py"
-
-        try:
-            filename = pathlib.Path(inspect.getfile(command.callback)).name  # type: ignore
-        except (TypeError, OSError):
-            pass
-
-        # getsourcelines for some reason returns WITH line endings
-        source_text = ''.join(source_lines)
-
-        if use_file_check(ctx, len(source_text)):  # File "full content" preview limit
-            await ctx.send(file=discord.File(
-                filename=filename,
-                fp=io.BytesIO(source_text.encode('utf-8'))
-            ))
-        else:
-            paginator = WrappedPaginator(prefix='```py', suffix='```', max_size=1980)
-
-            paginator.add_line(source_text.replace('```', '``\N{zero width space}`'))
-
-            interface = PaginatorInterface(ctx.bot, paginator, owner=ctx.author)
-            await interface.send_to(ctx)
